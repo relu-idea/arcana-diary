@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenAI } from '@google/genai';
 import { Header } from './components/Header';
 import { DiaryEditor } from './components/DiaryEditor';
 import { FeedbackCard } from './components/FeedbackCard';
@@ -184,24 +185,66 @@ export default function App() {
         }
       };
 
-      const res = await fetch('/api/analyze-diary', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      let feedbackText: string | null = null;
 
-      const data = await res.json();
-      setLastApiResponse(data);
+      try {
+        const res = await fetch('/api/analyze-diary', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
 
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'AI 피드백 생성에 실패했습니다.');
+        if (res.ok) {
+          const data = await res.json();
+          setLastApiResponse(data);
+          if (data.success && data.feedback) {
+            feedbackText = data.feedback;
+          }
+        }
+      } catch (serverErr) {
+        console.warn('Server API unavailable, checking client Gemini API key fallback...', serverErr);
       }
 
-      setFeedbackResponse(data.feedback);
+      // If server API did not return feedback, check client-side Gemini fallback
+      if (!feedbackText) {
+        const clientApiKey = (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
+        if (clientApiKey) {
+          const ai = new GoogleGenAI({ apiKey: clientApiKey });
+          const systemInstruction = `
+너는 사용자의 하루를 기록한 일기를 분석하고, 지정된 타로 메이저 아르카나 카드의 고유한 성격과 시선으로 따뜻하고 통찰력 있는 피드백을 제공하는 'Arcana Diary'의 생성형 AI 저널링 엔진이다.
+이 서비스는 미래를 점치는 '타로 점'이 아니라, '오늘의 나를 특정 아르카나의 시선으로 바라보는 치유와 성찰의 저널링 서비스'이다. 유저를 다정하게 보듬어주는 초등학교 담임선생님 같은 따뜻함과, 삶을 꿰뚫어 보는 타로 카드의 깊은 지혜를 동시에 갖춘 어투를 유지하라.
+
+# 기본 출력 규칙 (Output Constraints)
+1. 글자 수 및 문장 제한: 반드시 3~5문장 이내로 명확하고 군더더기 없이 작성하라.
+2. 톤앤매너: 절대 차갑거나 분석적인 보고서 형태를 취하지 말 것. 공감과 위로를 바탕으로 하되, 카드가 가진 코어 가치를 깨달을 수 있는 조언을 포함하라.
+3. 금지 사항: 전문적인 의학적/정신과적 진단이나 조언을 절대 하지 말 것. 예언이나 미래의 길흉화복을 단정 짓지 말 것.
+
+# 응답 템플릿 (Response Format)
+오직 유저에게 건네는 3~5문장의 따뜻한 피드백 텍스트만 출력하라. 마크다운 태그나 안내 문구는 일절 제외한다.
+`.trim();
+
+          const response = await ai.models.generateContent({
+            model: "gemini-3.6-flash",
+            contents: JSON.stringify(payload, null, 2),
+            config: {
+              systemInstruction,
+              temperature: 0.8,
+            }
+          });
+
+          feedbackText = response.text ? response.text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim() : '';
+        }
+      }
+
+      if (!feedbackText) {
+        throw new Error('AI 피드백 생성 서버에 연결할 수 없거나 API 키가 설정되지 않았습니다.');
+      }
+
+      setFeedbackResponse(feedbackText);
     } catch (err: any) {
-      console.error('Diary Analysis API Error:', err);
+      console.error('Diary Analysis Error:', err);
       setError(err.message || '요청 처리 중 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
