@@ -1,0 +1,6 @@
+{
+  "name": "Arcana Diary - 아르카나 다이어리",
+  "description": "오늘의 나를 특정 타로 메이저 아르카나의 시선으로 바라보는 치유와 성찰의 생성형 AI 저널링 서비스",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
