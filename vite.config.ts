@@ -5,7 +5,10 @@ import {defineConfig} from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: process.env.GITHUB_ACTIONS ? '/arcana-diary/' : './',
+    base: './',
+    define: {
+      'process.env': {},
+    },
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {

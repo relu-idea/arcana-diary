@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GoogleGenAI } from '@google/genai';
 import { Header } from './components/Header';
 import { DiaryEditor } from './components/DiaryEditor';
 import { FeedbackCard } from './components/FeedbackCard';
@@ -211,7 +210,6 @@ export default function App() {
       if (!feedbackText) {
         const clientApiKey = (import.meta.env.VITE_GEMINI_API_KEY as string) || '';
         if (clientApiKey) {
-          const ai = new GoogleGenAI({ apiKey: clientApiKey });
           const systemInstruction = `
 너는 사용자의 하루를 기록한 일기를 분석하고, 지정된 타로 메이저 아르카나 카드의 고유한 성격과 시선으로 따뜻하고 통찰력 있는 피드백을 제공하는 'Arcana Diary'의 생성형 AI 저널링 엔진이다.
 이 서비스는 미래를 점치는 '타로 점'이 아니라, '오늘의 나를 특정 아르카나의 시선으로 바라보는 치유와 성찰의 저널링 서비스'이다. 유저를 다정하게 보듬어주는 초등학교 담임선생님 같은 따뜻함과, 삶을 꿰뚫어 보는 타로 카드의 깊은 지혜를 동시에 갖춘 어투를 유지하라.
@@ -225,16 +223,20 @@ export default function App() {
 오직 유저에게 건네는 3~5문장의 따뜻한 피드백 텍스트만 출력하라. 마크다운 태그나 안내 문구는 일절 제외한다.
 `.trim();
 
-          const response = await ai.models.generateContent({
-            model: "gemini-3.6-flash",
-            contents: JSON.stringify(payload, null, 2),
-            config: {
-              systemInstruction,
-              temperature: 0.8,
-            }
+          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              contents: [{ parts: [{ text: JSON.stringify(payload, null, 2) }] }]
+            })
           });
 
-          feedbackText = response.text ? response.text.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim() : '';
+          if (response.ok) {
+            const resultData = await response.json();
+            const textResult = resultData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+            feedbackText = textResult.trim().replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/i, '').trim();
+          }
         }
       }
 
