@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookOpen, Layers, History, Settings, Key } from 'lucide-react';
+import { Sparkles, BookOpen, Layers, History, Settings } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'write' | 'cards' | 'history';
@@ -7,7 +7,6 @@ interface HeaderProps {
   historyCount: number;
   onOpenCatalogModal?: () => void;
   onOpenSettings?: () => void;
-  onOpenApiKeyModal?: () => void;
   isSessionLocked?: boolean;
 }
 
@@ -17,7 +16,6 @@ export const Header: React.FC<HeaderProps> = ({
   historyCount,
   onOpenCatalogModal,
   onOpenSettings,
-  onOpenApiKeyModal,
   isSessionLocked,
 }) => {
   return (
@@ -95,17 +93,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* API Key button & Settings button */}
-          <button
-            id="nav-api-key-btn"
-            onClick={onOpenApiKeyModal}
-            className="p-2 rounded-lg text-amber-400 hover:text-amber-200 hover:bg-amber-500/10 transition-all cursor-pointer flex items-center justify-center shrink-0 border border-amber-500/20"
-            title="Gemini API Key 설정"
-            aria-label="Gemini API Key 설정"
-          >
-            <Key className="w-4 h-4 text-amber-300 shrink-0" />
-          </button>
-
+          {/* Settings button */}
           <button
             id="nav-settings-btn"
             onClick={onOpenSettings}

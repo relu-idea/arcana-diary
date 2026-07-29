@@ -6,12 +6,11 @@ import { JournalHistory } from './components/JournalHistory';
 import { AdminSettingsModal } from './components/AdminSettingsModal';
 import { ArcanaCatalogModal } from './components/ArcanaCatalogModal';
 import { JournalSettingsModal } from './components/JournalSettingsModal';
-import { ApiKeyModal } from './components/ApiKeyModal';
 import { ArcanaCardDisplay } from './components/ArcanaCardDisplay';
 import { ArcanaCard, SavedJournalEntry, ApiResponse, JournalLockConfig } from './types';
 import { MAJOR_ARCANA_CARDS } from './data/arcanaData';
 import { exportEncryptedBackup, importEncryptedBackup } from './utils/crypto';
-import { Sparkles, AlertCircle, Layers, History, Lock, Shuffle, RotateCcw, HelpCircle, Check, Grid, Key } from 'lucide-react';
+import { Sparkles, AlertCircle, Layers, History, Lock, Shuffle, RotateCcw, HelpCircle, Check, Grid } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'write' | 'cards' | 'history'>('write');
@@ -24,7 +23,6 @@ export default function App() {
   const [historyEntries, setHistoryEntries] = useState<SavedJournalEntry[]>([]);
   const [isSavedToHistory, setIsSavedToHistory] = useState<boolean>(false);
   const [isAdminModalOpen, setIsAdminModalOpen] = useState<boolean>(false);
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(false);
   const [isCatalogModalOpen, setIsCatalogModalOpen] = useState<boolean>(false);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -226,7 +224,7 @@ export default function App() {
 `.trim();
 
           try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${clientApiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${clientApiKey}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -252,8 +250,7 @@ export default function App() {
       }
 
       if (!feedbackText) {
-        setIsApiKeyModalOpen(true);
-        throw new Error('서비스 운영자의 Gemini API Key가 설정되지 않았습니다. GitHub 레포지토리 Secrets(VITE_GEMINI_API_KEY)를 등록하시거나 아래 🔑 버튼으로 API 키를 등록해 주세요.');
+        throw new Error('AI 피드백을 생성할 수 없습니다. 잠시 후 다시 시도해 주세요.');
       }
 
       setFeedbackResponse(feedbackText);
@@ -338,7 +335,6 @@ export default function App() {
         historyCount={historyEntries.length}
         onOpenCatalogModal={() => setIsCatalogModalOpen(true)}
         onOpenSettings={() => setIsJournalSettingsOpen(true)}
-        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
         isSessionLocked={isSessionLocked}
       />
 
@@ -501,7 +497,7 @@ export default function App() {
 
               {/* Error Banner */}
               {error && (
-                <div className="bg-rose-950/90 border border-rose-800/80 rounded-2xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-rose-200 text-sm sm:text-base animate-shake shadow-xl">
+                <div className="bg-rose-950/90 border border-rose-800/80 rounded-2xl p-5 flex items-center justify-between gap-4 text-rose-200 text-sm sm:text-base animate-shake shadow-xl">
                   <div className="flex items-start gap-3.5">
                     <AlertCircle className="w-6 h-6 text-rose-400 flex-shrink-0 mt-0.5" />
                     <div>
@@ -509,13 +505,6 @@ export default function App() {
                       <span>{error}</span>
                     </div>
                   </div>
-                  <button
-                    onClick={() => setIsApiKeyModalOpen(true)}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm shrink-0 shadow-md transition-colors cursor-pointer"
-                  >
-                    <Key className="w-4 h-4" />
-                    Gemini API 키 입력하기
-                  </button>
                 </div>
               )}
 
@@ -635,13 +624,6 @@ export default function App() {
         accept=".arcana,.json"
         onChange={handleGlobalFileChange}
         className="hidden"
-      />
-
-      {/* Gemini API Key Modal for GitHub Pages & Static hosting */}
-      <ApiKeyModal
-        isOpen={isApiKeyModalOpen}
-        onClose={() => setIsApiKeyModalOpen(false)}
-        onSave={() => setError(null)}
       />
 
       {/* Admin Protected Settings Modal */}
