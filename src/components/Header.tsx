@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookOpen, Layers, History, Settings } from 'lucide-react';
+import { Sparkles, BookOpen, Layers, History, Settings, Key } from 'lucide-react';
 
 interface HeaderProps {
   activeTab: 'write' | 'cards' | 'history';
@@ -7,6 +7,7 @@ interface HeaderProps {
   historyCount: number;
   onOpenCatalogModal?: () => void;
   onOpenSettings?: () => void;
+  onOpenApiKeyModal?: () => void;
   isSessionLocked?: boolean;
 }
 
@@ -16,6 +17,7 @@ export const Header: React.FC<HeaderProps> = ({
   historyCount,
   onOpenCatalogModal,
   onOpenSettings,
+  onOpenApiKeyModal,
   isSessionLocked,
 }) => {
   return (
@@ -93,13 +95,23 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Settings button directly to the right of '기록장' button (icon only) */}
+          {/* API Key button & Settings button */}
+          <button
+            id="nav-api-key-btn"
+            onClick={onOpenApiKeyModal}
+            className="p-2 rounded-lg text-amber-400 hover:text-amber-200 hover:bg-amber-500/10 transition-all cursor-pointer flex items-center justify-center shrink-0 border border-amber-500/20"
+            title="Gemini API Key 설정"
+            aria-label="Gemini API Key 설정"
+          >
+            <Key className="w-4 h-4 text-amber-300 shrink-0" />
+          </button>
+
           <button
             id="nav-settings-btn"
             onClick={onOpenSettings}
             className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all cursor-pointer relative flex items-center justify-center shrink-0"
-            title="기록장 및 앱 설정"
-            aria-label="기록장 및 앱 설정"
+            title="기록장 및 개발자 설정"
+            aria-label="기록장 및 개발자 설정"
           >
             <Settings className="w-4 h-4 text-slate-300 shrink-0" />
             {isSessionLocked && (
