@@ -76,7 +76,7 @@ async function startServer() {
   });
 
   // AI Journal Analysis API endpoint
-  app.post("/api/analyze-diary", async (req, res) => {
+  app.post(["/api/analyze-diary", "/api/analyze-diary/"], async (req, res) => {
     try {
       const { diary_content, selected_arcana } = req.body || {};
 
@@ -85,7 +85,7 @@ async function startServer() {
         return;
       }
 
-      if (!selected_arcana || !selected_arcana.id || !selected_arcana.name_kr) {
+      if (!selected_arcana || selected_arcana.id === undefined || selected_arcana.id === null || !selected_arcana.name_kr) {
         res.status(400).json({ error: "선택된 아르카나 카드의 정보(selected_arcana)가 필요합니다." });
         return;
       }
