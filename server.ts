@@ -100,6 +100,11 @@ async function startServer() {
 
       const ai = new GoogleGenAI({
         apiKey,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          },
+        },
       });
 
       const systemInstruction = `
@@ -138,7 +143,7 @@ async function startServer() {
       const userPrompt = JSON.stringify(inputPayload, null, 2);
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
+        model: "gemini-3.6-flash",
         contents: userPrompt,
         config: {
           systemInstruction,
