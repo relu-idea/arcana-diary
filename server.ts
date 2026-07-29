@@ -93,18 +93,13 @@ async function startServer() {
       const apiKey = process.env.GEMINI_API_KEY;
       if (!apiKey) {
         res.status(500).json({
-          error: "GEMINI_API_KEY가 설정되지 않았습니다. AI Studio Secrets 설정을 확인해주세요."
+          error: "GEMINI_API_KEY가 서버에 설정되지 않았습니다. AI Studio 관리자 설정을 확인해주세요."
         });
         return;
       }
 
       const ai = new GoogleGenAI({
         apiKey,
-        httpOptions: {
-          headers: {
-            'User-Agent': 'aistudio-build'
-          }
-        }
       });
 
       const systemInstruction = `
@@ -143,7 +138,7 @@ async function startServer() {
       const userPrompt = JSON.stringify(inputPayload, null, 2);
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.6-flash",
+        model: "gemini-2.5-flash",
         contents: userPrompt,
         config: {
           systemInstruction,
