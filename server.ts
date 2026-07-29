@@ -143,7 +143,7 @@ async function startServer() {
       const userPrompt = JSON.stringify(inputPayload, null, 2);
 
       const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+        model: "gemini-1.5-flash",
         contents: userPrompt,
         config: {
           systemInstruction,
